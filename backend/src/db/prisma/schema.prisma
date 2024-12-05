@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  firstName   String
+  lastName    String
+  role        Role      @default(USER)
+  phoneNumber String?   @unique
+  address     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  orders      Order[]
+  cartItems   CartItem[]
+  permissions Permission[]
+  refreshToken RefreshToken[]
+  reviews     Review[]
+  wishlist    Wishlist[]
+}
+
+model Order {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  totalAmount Float
+  status      OrderStatus
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  items       OrderItem[]
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Product {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  stock       Int
+  images      String[]   @default([])
+  popularity  Float?     @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+  categories  Category[] @relation("ProductCategory")
+  wishlist    Wishlist[]
+}
+
+model Wishlist {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])  // Ensures a user can only add a product once to the wishlist
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  productId Int
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User    @relation(fields: [userId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Permission {
+  id         Int      @id @default(autoincrement())
+  role       Role
+  userId     Int
+  resource   Resource 
+  create     Boolean  @default(false)
+  read       Boolean  @default(false)
+  update     Boolean  @default(false)
+  delete     Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, resource])
+}
+
+model RefreshToken {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique
+  token     String  @db.Text
+  expiredAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      // Rating between 1 and 5 (or any range you prefer)
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  productId Int
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([productId]) // Index for faster query on reviews per product
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  products  Product[]  @relation("ProductCategory")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+enum Resource {
+  PRODUCT
+  ORDER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}

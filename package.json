@@ -1,0 +1,32 @@
+{
+  "name": "e-commerce",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "start": "npm run start:backend && npm run start:frontend",
+    "start:backend": "npm run start --workspace backend",
+    "start:frontend": "npm run start --workspace frontend",
+    "dev": "concurrently -n backend,frontend \"cross-env BACKEND_PORT=$npm_package_config_backend_port npm run dev:backend\" \"wait-on http://localhost:$npm_package_config_backend_port/healthcheck && cross-env BACKEND_PORT=$npm_package_config_backend_port npm run dev:frontend\"",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "dev:server": "npm run dev --workspace backend",
+    "dev:client": "npm run dev --workspace frontend",
+    "prisma:generate": "npm run prisma:generate --workspace backend",
+    "prisma:studio": "npm run prisma:studio --workspace backend",
+    "prisma:migrate": "npm run prisma:migrate --workspace backend",
+    "seed:db": "npm run seed:db --workspace backend"
+  },
+  "config": {
+    "backend_port": 3001
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "wait-on": "^8.0.1",
+    "cross-env": "^7.0.3"
+  }
+}
+
