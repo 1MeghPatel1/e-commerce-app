@@ -18,7 +18,8 @@
     "prisma:generate": "npm run prisma:generate --workspace backend",
     "prisma:studio": "npm run prisma:studio --workspace backend",
     "prisma:migrate": "npm run prisma:migrate --workspace backend",
-    "seed:db": "npm run seed:db --workspace backend"
+    "seed:db": "npm run seed:db --workspace backend",
+    "exec-in-workspace": "node -e \"const exec = require('child_process').exec; const workspace = process.argv[1]; const command = process.argv[2]; exec('npm run ' + command + ' --workspace ' + workspace, (err, stdout, stderr) => { if (err) { console.error(err); return; } console.log(stdout); console.error(stderr); });\""
   },
   "config": {
     "backend_port": 3001
